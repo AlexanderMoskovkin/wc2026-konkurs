@@ -5,205 +5,134 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ЧМ-2026 · Семейный конкурс</title>
 <style>
-  :root {
-    --ink: #1c2330;
-    --muted: #67707f;
-    --line: #e3e7ee;
-    --card: #ffffff;
-    --bg: #f4f6f9;
-    --accent: #1463d6;
-    --gold: #fff3c4;
-  }
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
-  .wrap { max-width: 640px; margin: 0 auto; padding: 12px 12px 48px; }
-  header h1 { font-size: 22px; margin: 8px 0 2px; }
-  header .updated { color: var(--muted); font-size: 16px; margin: 0 0 16px; }
-  h2 { font-size: 19px; margin: 24px 0 10px; }
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-  /* Таблица */
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 17px; line-height: 1.5;
+         color: #1a1a1a; background: #f4f4f0; padding: 12px; }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  header { padding: 10px 4px 16px; }
+  h1 { font-size: 21px; font-weight: 600; }
+  .upd { font-size: 13px; color: #8a8a84; margin-top: 2px; }
+  section { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 14px;
+            border: 1px solid #e4e4de; }
+  h2 { font-size: 17px; font-weight: 600; margin-bottom: 12px; }
+  .day-sub { font-weight: 400; color: #8a8a84; font-size: 14px; }
+  .match { padding: 12px 0; border-top: 1px solid #efefe9; }
+  .match:first-of-type { border-top: none; }
+  .meta { font-size: 13px; color: #8a8a84; margin-bottom: 6px; }
+  .teams { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; flex-wrap: wrap; }
+  .teams img { width: 24px; height: 18px; border-radius: 2px; border: 1px solid #e4e4de; }
+  .score { margin-left: auto; font-size: 19px; }
+  .scorers { font-size: 14px; color: #555; margin-top: 6px; }
+  .review { font-size: 15px; margin-top: 8px; color: #333; }
+  .chips { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 13px; padding: 3px 10px; border-radius: 12px; background: #f0f0ea; color: #66665f; }
+  .chip.p5 { background: #d9f0dc; color: #1e6b2e; font-weight: 600; }
+  .chip.p34 { background: #fdeece; color: #8a5d05; }
+  .chip.p12 { background: #ececff; color: #4a4a9c; }
+  .preds { font-size: 14px; color: #555; margin-top: 8px; line-height: 1.7; }
   table { width: 100%; border-collapse: collapse; font-size: 16px; }
-  th { text-align: left; color: var(--muted); font-weight: 600; font-size: 14px; padding: 4px 6px; }
-  td { padding: 7px 6px; border-top: 1px solid var(--line); }
-  th.num, td.num { text-align: right; }
-  tr.top1 td { background: var(--gold); font-weight: 700; }
-  tr.top1 td:first-child { border-radius: 8px 0 0 8px; }
-  tr.top1 td:last-child { border-radius: 0 8px 8px 0; }
-  /* Матчи */
-  .mtime { color: var(--muted); font-size: 15px; }
-  .mteams { font-size: 17px; font-weight: 700; margin: 2px 0; }
-  .mstage { color: var(--muted); font-size: 15px; }
-  .preds { margin-top: 8px; font-size: 16px; color: var(--ink); line-height: 1.7; }
-  .preds .nopred { color: #a7311f; }
-  .sep { color: #c2c9d4; }
-  /* Отчёты */
-  details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px; }
-  summary {
-    cursor: pointer; list-style: none; padding: 12px;
-    font-size: 17px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;
-  }
-  summary::-webkit-details-marker { display: none; }
-  summary .count { color: var(--muted); font-weight: 400; font-size: 15px; }
-  summary::after { content: "▸"; color: var(--muted); margin-left: 8px; transition: transform .15s; }
-  details[open] summary::after { transform: rotate(90deg); }
-  .day-body { padding: 0 12px 12px; }
-  .rmatch { border-top: 1px solid var(--line); padding: 10px 0 4px; }
-  .review { margin: 6px 0 2px; font-size: 16px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .chip {
-    font-size: 15px; padding: 3px 9px; border-radius: 999px;
-    background: #eef1f5; color: #4d5666; white-space: nowrap;
-  }
-  .chip.p5 { background: #d3f2d8; color: #176331; font-weight: 700; }
-  .chip.p34 { background: #fdeeb8; color: #7a5b00; font-weight: 600; }
-  .chip.p12 { background: #ddebfd; color: #1c4f9c; }
-  .chip.p0 { background: #eef1f5; color: #818b9b; }
-  .chip.pnone { background: transparent; border: 1px dashed #c2c9d4; color: #9aa3b2; }
-  .empty { color: var(--muted); }
-  #error { display: none; background: #fdecea; border: 1px solid #f5c6c0; border-radius: 12px; padding: 12px; }
+  td, th { padding: 8px 6px; text-align: left; border-top: 1px solid #efefe9; }
+  th { font-size: 13px; color: #8a8a84; font-weight: 500; border-top: none; }
+  td.r, th.r { text-align: right; }
+  tr.top td { background: #fbf6e3; font-weight: 600; }
+  .exact { font-size: 13px; color: #8a8a84; }
+  details { border-top: 1px solid #efefe9; }
+  details:first-of-type { border-top: none; }
+  summary { padding: 12px 4px; font-size: 16px; font-weight: 600; cursor: pointer; }
+  summary .day-sub { font-size: 13px; }
+  footer { text-align: center; font-size: 13px; color: #8a8a84; padding: 8px 0 20px; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <h1>⚽ ЧМ-2026 · Семейный конкурс</h1>
-    <p class="updated" id="updated">Загрузка…</p>
+    <div class="upd" id="upd"></div>
   </header>
-  <div id="error"></div>
-  <section>
-    <h2>🏆 Таблица</h2>
-    <div class="card"><table id="standings">
-      <thead><tr><th class="num">#</th><th>Имя</th><th class="num">Очки</th><th class="num">Точные</th></tr></thead>
-      <tbody></tbody>
-    </table></div>
-  </section>
-  <section>
-    <h2>⏰ Ближайшие матчи</h2>
-    <div id="upcoming"></div>
-  </section>
-  <section>
-    <h2>📰 Отчёты по дням</h2>
-    <div id="reports"></div>
-  </section>
+  <section id="latest"></section>
+  <section id="table-sec"></section>
+  <section id="next"></section>
+  <section id="archive-sec"></section>
+  <footer>Семейный конкурс прогнозов · обновляется по утрам</footer>
 </div>
 <script>
-"use strict";
-const FLAGS = {
-  "Мексика":"🇲🇽","ЮАР":"🇿🇦","Юж. Корея":"🇰🇷","Чехия":"🇨🇿","Канада":"🇨🇦","Босния":"🇧🇦",
-  "Катар":"🇶🇦","Швейцария":"🇨🇭","Бразилия":"🇧🇷","Марокко":"🇲🇦","Гаити":"🇭🇹","Шотландия":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-  "США":"🇺🇸","Парагвай":"🇵🇾","Австралия":"🇦🇺","Турция":"🇹🇷","Германия":"🇩🇪","Кюрасао":"🇨🇼",
-  "Кот-д'Ивуар":"🇨🇮","Эквадор":"🇪🇨","Нидерланды":"🇳🇱","Япония":"🇯🇵","Швеция":"🇸🇪","Тунис":"🇹🇳",
-  "Бельгия":"🇧🇪","Египет":"🇪🇬","Иран":"🇮🇷","Нов. Зеландия":"🇳🇿","Испания":"🇪🇸","Кабо-Верде":"🇨🇻",
-  "Сауд. Аравия":"🇸🇦","Уругвай":"🇺🇾","Франция":"🇫🇷","Сенегал":"🇸🇳","Ирак":"🇮🇶","Норвегия":"🇳🇴",
-  "Аргентина":"🇦🇷","Алжир":"🇩🇿","Австрия":"🇦🇹","Иордания":"🇯🇴","Португалия":"🇵🇹","ДР Конго":"🇨🇩",
-  "Узбекистан":"🇺🇿","Колумбия":"🇨🇴","Англия":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Хорватия":"🇭🇷","Гана":"🇬🇭","Панама":"🇵🇦"
-};
-const flag = t => FLAGS[t] || "🏳️";
-const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const FLAGS = {"Мексика":"mx","ЮАР":"za","Юж. Корея":"kr","Чехия":"cz","Канада":"ca","Босния":"ba",
+"Катар":"qa","Швейцария":"ch","Бразилия":"br","Марокко":"ma","Гаити":"ht","Шотландия":"gb-sct",
+"США":"us","Парагвай":"py","Австралия":"au","Турция":"tr","Германия":"de","Кюрасао":"cw",
+"Кот-д'Ивуар":"ci","Эквадор":"ec","Нидерланды":"nl","Япония":"jp","Швеция":"se","Тунис":"tn",
+"Бельгия":"be","Египет":"eg","Иран":"ir","Нов. Зеландия":"nz","Испания":"es","Кабо-Верде":"cv",
+"Сауд. Аравия":"sa","Уругвай":"uy","Франция":"fr","Сенегал":"sn","Ирак":"iq","Норвегия":"no",
+"Аргентина":"ar","Алжир":"dz","Австрия":"at","Иордания":"jo","Португалия":"pt","ДР Конго":"cd",
+"Узбекистан":"uz","Колумбия":"co","Англия":"gb-eng","Хорватия":"hr","Гана":"gh","Панама":"pa"};
+const MONTHS = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
 
-function teamsLine(m) {
-  return `${flag(m.team1)} ${esc(m.team1)} — ${esc(m.team2)} ${flag(m.team2)}`;
+function flag(team) {
+  const c = FLAGS[team.trim()];
+  return c ? `<img src="https://flagcdn.com/48x36/${c}.png" width="24" height="18" alt="">` : "";
+}
+function dayDate(matches) {
+  const m = matches[0];
+  const [d, mo] = m.date.split(".").map(Number);
+  return `${d} ${MONTHS[mo-1]}`;
+}
+function chipClass(p) { return p === 5 ? "chip p5" : p >= 3 ? "chip p34" : p >= 1 ? "chip p12" : "chip"; }
+function chipsHtml(points) {
+  const entries = Object.entries(points).filter(([, v]) => v !== null && v !== undefined && v !== "—");
+  entries.sort((a, b) => b[1] - a[1]);
+  return `<div class="chips">` + entries.map(([n, p]) =>
+    `<span class="${chipClass(p)}">${n} ${p > 0 ? "+" + p : "0"}</span>`).join("") + `</div>`;
+}
+function matchCard(m, withReview) {
+  let h = `<div class="match"><div class="meta">${m.time} МСК · ${m.stage}</div>
+    <div class="teams">${flag(m.team1)} ${m.team1} — ${m.team2} ${flag(m.team2)}
+    <span class="score">${m.score || ""}</span></div>`;
+  if (m.scorers) h += `<div class="scorers">⚽ ${m.scorers}</div>`;
+  if (withReview && m.review) h += `<div class="review">${m.review}</div>`;
+  if (m.score && m.points) h += chipsHtml(m.points);
+  return h + `</div>`;
+}
+function predsLine(m, participants) {
+  return participants.map(p => `${p} ${m.preds[p] || "—?"}`).join(" · ");
 }
 
-function renderStandings(data) {
-  const tb = document.querySelector("#standings tbody");
-  tb.innerHTML = data.standings.map(r => `
-    <tr class="${r.place === 1 ? "top1" : ""}">
-      <td class="num">${r.place === 1 ? "🥇" : r.place}</td>
-      <td>${esc(r.name)}</td>
-      <td class="num">${r.points}</td>
-      <td class="num">${r.exact}</td>
-    </tr>`).join("");
-}
+fetch("data.json?v=" + Date.now()).then(r => r.json()).then(d => {
+  document.getElementById("upd").textContent = "Обновлено " + d.generated_at_text;
+  const byDay = {};
+  d.matches.forEach(m => (byDay[m.day] = byDay[m.day] || []).push(m));
+  const days = Object.keys(byDay).map(Number).sort((a, b) => a - b);
+  const playedDays = days.filter(day => byDay[day].some(m => m.score));
+  const latestDay = playedDays.length ? Math.max(...playedDays) : null;
 
-function renderUpcoming(data) {
-  const box = document.getElementById("upcoming");
-  const now = Date.now();
-  const unplayed = data.matches
-    .filter(m => !m.score && new Date(m.kickoff).getTime() > now - 3 * 3600e3)
-    .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff));
-  let list = unplayed.filter(m => new Date(m.kickoff).getTime() <= now + 36 * 3600e3);
-  if (list.length < 2) list = unplayed.slice(0, 2);
-  if (!list.length) {
-    box.innerHTML = `<div class="card empty">Несыгранных матчей не осталось — турнир завершён! 🎉</div>`;
-    return;
-  }
-  box.innerHTML = list.map(m => {
-    const preds = data.participants.map(n => {
-      const p = m.preds[n];
-      return p ? `${esc(n)} ${p}` : `<span class="nopred">${esc(n)} —?</span>`;
-    }).join(` <span class="sep">·</span> `);
-    return `<div class="card">
-      <div class="mtime">${m.date} · ${m.time} МСК <span class="mstage">· ${esc(m.stage)}</span></div>
-      <div class="mteams">${teamsLine(m)}</div>
-      <div class="preds">${preds}</div>
-    </div>`;
-  }).join("");
-}
+  if (latestDay) {
+    const ms = byDay[latestDay].filter(m => m.score);
+    document.getElementById("latest").innerHTML =
+      `<h2>📰 День ${latestDay} <span class="day-sub">· ${dayDate(byDay[latestDay])} · результаты</span></h2>` +
+      ms.map(m => matchCard(m, true)).join("");
+  } else document.getElementById("latest").style.display = "none";
 
-function chip(name, p) {
-  if (p === null || p === undefined) return `<span class="chip pnone">${esc(name)} —</span>`;
-  const cls = p === 5 ? "p5" : p >= 3 ? "p34" : p > 0 ? "p12" : "p0";
-  return `<span class="chip ${cls}">${esc(name)} ${p > 0 ? "+" + p : "0"}</span>`;
-}
+  document.getElementById("table-sec").innerHTML = `<h2>🏆 Таблица</h2>
+    <table><tr><th>#</th><th>Участник</th><th class="r">Очки</th><th class="r">Точные</th></tr>` +
+    d.standings.map((s, i) =>
+      `<tr${i === 0 ? ' class="top"' : ""}><td>${i + 1}</td><td>${s.name}</td>
+       <td class="r">${s.points}</td><td class="r exact">${s.exact || "—"}</td></tr>`).join("") + `</table>`;
 
-function renderReports(data) {
-  const box = document.getElementById("reports");
-  const played = data.matches.filter(m => m.score);
-  if (!played.length) {
-    box.innerHTML = `<div class="card empty">Сыгранных матчей пока нет — ждём первых результатов!</div>`;
-    return;
-  }
-  const byDay = new Map();
-  for (const m of played) {
-    if (!byDay.has(m.date)) byDay.set(m.date, { day: m.day, list: [] });
-    byDay.get(m.date).list.push(m);
-  }
-  const days = [...byDay.entries()].sort((a, b) => b[1].day - a[1].day);
-  box.innerHTML = days.map(([date, { day, list }], i) => {
-    const body = list.map(m => `
-      <div class="rmatch">
-        <div class="mteams">${flag(m.team1)} ${esc(m.team1)} — ${esc(m.team2)} ${m.score} ${flag(m.team2)}</div>
-        <div class="mstage">${esc(m.stage)}</div>
-        ${m.review ? `<p class="review">${esc(m.review)}</p>` : ""}
-        <div class="chips">${data.participants.map(n => chip(n, m.points ? m.points[n] : null)).join("")}</div>
-      </div>`).join("");
-    return `<details ${i === 0 ? "open" : ""}>
-      <summary><span>День ${day} · ${date}</span><span class="count">матчей: ${list.length}</span></summary>
-      <div class="day-body">${body}</div>
-    </details>`;
-  }).join("");
-}
+  const futureDays = days.filter(day => byDay[day].some(m => !m.score));
+  const nextDay = futureDays.length ? Math.min(...futureDays) : null;
+  if (nextDay) {
+    const ms = byDay[nextDay].filter(m => !m.score);
+    document.getElementById("next").innerHTML =
+      `<h2>⏰ День ${nextDay} <span class="day-sub">· ${dayDate(byDay[nextDay])} · прогнозы</span></h2>` +
+      ms.map(m => matchCard(m, false) +
+        `<div class="preds">${predsLine(m, d.participants)}</div>`).join("");
+  } else document.getElementById("next").style.display = "none";
 
-async function init() {
-  try {
-    const resp = await fetch(`data.json?v=${Date.now()}`, { cache: "no-store" });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    document.getElementById("updated").textContent = `Обновлено ${data.generated_at_text}`;
-    renderStandings(data);
-    renderUpcoming(data);
-    renderReports(data);
-  } catch (e) {
-    const el = document.getElementById("error");
-    el.style.display = "block";
-    el.textContent = "Не удалось загрузить данные: " + e.message;
-    document.getElementById("updated").textContent = "";
-  }
-}
-init();
+  const archDays = playedDays.filter(day => day !== latestDay).sort((a, b) => b - a);
+  if (archDays.length) {
+    document.getElementById("archive-sec").innerHTML = `<h2>📚 Предыдущие дни</h2>` +
+      archDays.map(day => `<details><summary>День ${day} <span class="day-sub">· ${dayDate(byDay[day])}</span></summary>` +
+        byDay[day].filter(m => m.score).map(m => matchCard(m, true)).join("") + `</details>`).join("");
+  } else document.getElementById("archive-sec").style.display = "none";
+});
 </script>
 </body>
 </html>
