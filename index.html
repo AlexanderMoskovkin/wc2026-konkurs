@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ЧМ-2026 · Семейный конкурс</title>
+<style>
+  :root {
+    --ink: #1c2330;
+    --muted: #67707f;
+    --line: #e3e7ee;
+    --card: #ffffff;
+    --bg: #f4f6f9;
+    --accent: #1463d6;
+    --gold: #fff3c4;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 12px 12px 48px; }
+  header h1 { font-size: 22px; margin: 8px 0 2px; }
+  header .updated { color: var(--muted); font-size: 16px; margin: 0 0 16px; }
+  h2 { font-size: 19px; margin: 24px 0 10px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  /* Таблица */
+  table { width: 100%; border-collapse: collapse; font-size: 16px; }
+  th { text-align: left; color: var(--muted); font-weight: 600; font-size: 14px; padding: 4px 6px; }
+  td { padding: 7px 6px; border-top: 1px solid var(--line); }
+  th.num, td.num { text-align: right; }
+  tr.top1 td { background: var(--gold); font-weight: 700; }
+  tr.top1 td:first-child { border-radius: 8px 0 0 8px; }
+  tr.top1 td:last-child { border-radius: 0 8px 8px 0; }
+  /* Матчи */
+  .mtime { color: var(--muted); font-size: 15px; }
+  .mteams { font-size: 17px; font-weight: 700; margin: 2px 0; }
+  .mstage { color: var(--muted); font-size: 15px; }
+  .preds { margin-top: 8px; font-size: 16px; color: var(--ink); line-height: 1.7; }
+  .preds .nopred { color: #a7311f; }
+  .sep { color: #c2c9d4; }
+  /* Отчёты */
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px; }
+  summary {
+    cursor: pointer; list-style: none; padding: 12px;
+    font-size: 17px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .count { color: var(--muted); font-weight: 400; font-size: 15px; }
+  summary::after { content: "▸"; color: var(--muted); margin-left: 8px; transition: transform .15s; }
+  details[open] summary::after { transform: rotate(90deg); }
+  .day-body { padding: 0 12px 12px; }
+  .rmatch { border-top: 1px solid var(--line); padding: 10px 0 4px; }
+  .review { margin: 6px 0 2px; font-size: 16px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip {
+    font-size: 15px; padding: 3px 9px; border-radius: 999px;
+    background: #eef1f5; color: #4d5666; white-space: nowrap;
+  }
+  .chip.p5 { background: #d3f2d8; color: #176331; font-weight: 700; }
+  .chip.p34 { background: #fdeeb8; color: #7a5b00; font-weight: 600; }
+  .chip.p12 { background: #ddebfd; color: #1c4f9c; }
+  .chip.p0 { background: #eef1f5; color: #818b9b; }
+  .chip.pnone { background: transparent; border: 1px dashed #c2c9d4; color: #9aa3b2; }
+  .empty { color: var(--muted); }
+  #error { display: none; background: #fdecea; border: 1px solid #f5c6c0; border-radius: 12px; padding: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>⚽ ЧМ-2026 · Семейный конкурс</h1>
+    <p class="updated" id="updated">Загрузка…</p>
+  </header>
+  <div id="error"></div>
+  <section>
+    <h2>🏆 Таблица</h2>
+    <div class="card"><table id="standings">
+      <thead><tr><th class="num">#</th><th>Имя</th><th class="num">Очки</th><th class="num">Точные</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+  <section>
+    <h2>⏰ Ближайшие матчи</h2>
+    <div id="upcoming"></div>
+  </section>
+  <section>
+    <h2>📰 Отчёты по дням</h2>
+    <div id="reports"></div>
+  </section>
+</div>
+<script>
+"use strict";
+const FLAGS = {
+  "Мексика":"🇲🇽","ЮАР":"🇿🇦","Юж. Корея":"🇰🇷","Чехия":"🇨🇿","Канада":"🇨🇦","Босния":"🇧🇦",
+  "Катар":"🇶🇦","Швейцария":"🇨🇭","Бразилия":"🇧🇷","Марокко":"🇲🇦","Гаити":"🇭🇹","Шотландия":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "США":"🇺🇸","Парагвай":"🇵🇾","Австралия":"🇦🇺","Турция":"🇹🇷","Германия":"🇩🇪","Кюрасао":"🇨🇼",
+  "Кот-д'Ивуар":"🇨🇮","Эквадор":"🇪🇨","Нидерланды":"🇳🇱","Япония":"🇯🇵","Швеция":"🇸🇪","Тунис":"🇹🇳",
+  "Бельгия":"🇧🇪","Египет":"🇪🇬","Иран":"🇮🇷","Нов. Зеландия":"🇳🇿","Испания":"🇪🇸","Кабо-Верде":"🇨🇻",
+  "Сауд. Аравия":"🇸🇦","Уругвай":"🇺🇾","Франция":"🇫🇷","Сенегал":"🇸🇳","Ирак":"🇮🇶","Норвегия":"🇳🇴",
+  "Аргентина":"🇦🇷","Алжир":"🇩🇿","Австрия":"🇦🇹","Иордания":"🇯🇴","Португалия":"🇵🇹","ДР Конго":"🇨🇩",
+  "Узбекистан":"🇺🇿","Колумбия":"🇨🇴","Англия":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Хорватия":"🇭🇷","Гана":"🇬🇭","Панама":"🇵🇦"
+};
+const flag = t => FLAGS[t] || "🏳️";
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function teamsLine(m) {
+  return `${flag(m.team1)} ${esc(m.team1)} — ${esc(m.team2)} ${flag(m.team2)}`;
+}
+
+function renderStandings(data) {
+  const tb = document.querySelector("#standings tbody");
+  tb.innerHTML = data.standings.map(r => `
+    <tr class="${r.place === 1 ? "top1" : ""}">
+      <td class="num">${r.place === 1 ? "🥇" : r.place}</td>
+      <td>${esc(r.name)}</td>
+      <td class="num">${r.points}</td>
+      <td class="num">${r.exact}</td>
+    </tr>`).join("");
+}
+
+function renderUpcoming(data) {
+  const box = document.getElementById("upcoming");
+  const now = Date.now();
+  const unplayed = data.matches
+    .filter(m => !m.score && new Date(m.kickoff).getTime() > now - 3 * 3600e3)
+    .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff));
+  let list = unplayed.filter(m => new Date(m.kickoff).getTime() <= now + 36 * 3600e3);
+  if (list.length < 2) list = unplayed.slice(0, 2);
+  if (!list.length) {
+    box.innerHTML = `<div class="card empty">Несыгранных матчей не осталось — турнир завершён! 🎉</div>`;
+    return;
+  }
+  box.innerHTML = list.map(m => {
+    const preds = data.participants.map(n => {
+      const p = m.preds[n];
+      return p ? `${esc(n)} ${p}` : `<span class="nopred">${esc(n)} —?</span>`;
+    }).join(` <span class="sep">·</span> `);
+    return `<div class="card">
+      <div class="mtime">${m.date} · ${m.time} МСК <span class="mstage">· ${esc(m.stage)}</span></div>
+      <div class="mteams">${teamsLine(m)}</div>
+      <div class="preds">${preds}</div>
+    </div>`;
+  }).join("");
+}
+
+function chip(name, p) {
+  if (p === null || p === undefined) return `<span class="chip pnone">${esc(name)} —</span>`;
+  const cls = p === 5 ? "p5" : p >= 3 ? "p34" : p > 0 ? "p12" : "p0";
+  return `<span class="chip ${cls}">${esc(name)} ${p > 0 ? "+" + p : "0"}</span>`;
+}
+
+function renderReports(data) {
+  const box = document.getElementById("reports");
+  const played = data.matches.filter(m => m.score);
+  if (!played.length) {
+    box.innerHTML = `<div class="card empty">Сыгранных матчей пока нет — ждём первых результатов!</div>`;
+    return;
+  }
+  const byDay = new Map();
+  for (const m of played) {
+    if (!byDay.has(m.date)) byDay.set(m.date, { day: m.day, list: [] });
+    byDay.get(m.date).list.push(m);
+  }
+  const days = [...byDay.entries()].sort((a, b) => b[1].day - a[1].day);
+  box.innerHTML = days.map(([date, { day, list }], i) => {
+    const body = list.map(m => `
+      <div class="rmatch">
+        <div class="mteams">${flag(m.team1)} ${esc(m.team1)} — ${esc(m.team2)} ${m.score} ${flag(m.team2)}</div>
+        <div class="mstage">${esc(m.stage)}</div>
+        ${m.review ? `<p class="review">${esc(m.review)}</p>` : ""}
+        <div class="chips">${data.participants.map(n => chip(n, m.points ? m.points[n] : null)).join("")}</div>
+      </div>`).join("");
+    return `<details ${i === 0 ? "open" : ""}>
+      <summary><span>День ${day} · ${date}</span><span class="count">матчей: ${list.length}</span></summary>
+      <div class="day-body">${body}</div>
+    </details>`;
+  }).join("");
+}
+
+async function init() {
+  try {
+    const resp = await fetch(`data.json?v=${Date.now()}`, { cache: "no-store" });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    document.getElementById("updated").textContent = `Обновлено ${data.generated_at_text}`;
+    renderStandings(data);
+    renderUpcoming(data);
+    renderReports(data);
+  } catch (e) {
+    const el = document.getElementById("error");
+    el.style.display = "block";
+    el.textContent = "Не удалось загрузить данные: " + e.message;
+    document.getElementById("updated").textContent = "";
+  }
+}
+init();
+</script>
+</body>
+</html>
