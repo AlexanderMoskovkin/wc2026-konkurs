@@ -147,6 +147,8 @@ def read_matches(xls_path):
                 m["review"] = rv["review"]
             if rv.get("scorers"):
                 m["scorers"] = rv["scorers"]
+            if rv.get("preds_review"):
+                m["preds_review"] = rv["preds_review"]
         matches.append(m)
     matches.sort(key=lambda m: (m["kickoff"], m["num"]))
     return matches
@@ -181,6 +183,7 @@ def main():
         "generated_at_text": now.strftime("%d.%m в %H:%M МСК"),
         "participants": PARTICIPANTS,
         "standings": build_standings(matches),
+        "table_comment": load_reviews(xls).get("_table"),
         "matches": matches,
     }
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json")
