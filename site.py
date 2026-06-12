@@ -179,6 +179,17 @@ def main():
         "matches": matches,
     }
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json")
+    if os.path.exists(out):
+        try:
+            with open(out, encoding="utf-8") as f:
+                old = json.load(f)
+            ignore = ("generated_at", "generated_at_text")
+            if {k: v for k, v in old.items() if k not in ignore} == \
+               {k: v for k, v in data.items() if k not in ignore}:
+                print("OK: данные не изменились, data.json не переписан")
+                return
+        except (ValueError, OSError):
+            pass  # старый файл битый — перепишем
     with open(out, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
         f.write("\n")
