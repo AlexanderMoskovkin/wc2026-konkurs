@@ -128,7 +128,7 @@ def read_matches(xls_path):
         m = {
             "num": int(float(num)),
             "date": d,
-            "day": (kickoff.date() - DAY1).days + 1,
+            "day": ((kickoff - timedelta(hours=9)).date() - DAY1).days + 1,
             "time": t,
             "kickoff": kickoff.isoformat(),
             "stage": cell_str(sh, r, 3),
@@ -139,9 +139,14 @@ def read_matches(xls_path):
         }
         if actual:
             m["points"] = points
-        review = reviews.get(d, {}).get(str(m["num"]))
-        if review:
-            m["review"] = review
+        rv = reviews.get(str(m["num"])) or reviews.get(d, {}).get(str(m["num"]))
+        if isinstance(rv, str):
+            m["review"] = rv
+        elif isinstance(rv, dict):
+            if rv.get("review"):
+                m["review"] = rv["review"]
+            if rv.get("scorers"):
+                m["scorers"] = rv["scorers"]
         matches.append(m)
     matches.sort(key=lambda m: (m["kickoff"], m["num"]))
     return matches
