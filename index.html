@@ -24,8 +24,12 @@
   .score { margin-left: auto; font-size: 19px; }
   .scorers { font-size: 14px; color: #555; margin-top: 6px; }
   .review { font-size: 15px; margin-top: 8px; color: #333; }
+  .preds-review { font-size: 15px; margin-top: 8px; color: #333; }
+  .tbl-comment { font-size: 15px; margin-top: 12px; color: #333; }
   .chips { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { font-size: 13px; padding: 3px 10px; border-radius: 12px; background: #f0f0ea; color: #66665f; }
+  .chip { font-size: 13px; padding: 4px 10px; border-radius: 10px; background: #f0f0ea; color: #66665f;
+          text-align: center; line-height: 1.35; }
+  .chip small { display: block; font-size: 12px; opacity: 0.75; font-weight: 400; }
   .chip.p5 { background: #d9f0dc; color: #1e6b2e; font-weight: 600; }
   .chip.p34 { background: #fdeece; color: #8a5d05; }
   .chip.p12 { background: #ececff; color: #4a4a9c; }
@@ -76,11 +80,11 @@ function dayDate(matches) {
   return `${d} ${MONTHS[mo-1]}`;
 }
 function chipClass(p) { return p === 5 ? "chip p5" : p >= 3 ? "chip p34" : p >= 1 ? "chip p12" : "chip"; }
-function chipsHtml(points) {
-  const entries = Object.entries(points).filter(([, v]) => v !== null && v !== undefined && v !== "—");
+function chipsHtml(m) {
+  const entries = Object.entries(m.points).filter(([, v]) => v !== null && v !== undefined && v !== "—");
   entries.sort((a, b) => b[1] - a[1]);
   return `<div class="chips">` + entries.map(([n, p]) =>
-    `<span class="${chipClass(p)}">${n} ${p > 0 ? "+" + p : "0"}</span>`).join("") + `</div>`;
+    `<span class="${chipClass(p)}">${n} ${p > 0 ? "+" + p : "0"}<small>${m.preds[n] || "—"}</small></span>`).join("") + `</div>`;
 }
 function matchCard(m, withReview) {
   let h = `<div class="match"><div class="meta">${m.time} МСК · ${m.stage}</div>
@@ -88,7 +92,8 @@ function matchCard(m, withReview) {
     <span class="score">${m.score || ""}</span></div>`;
   if (m.scorers) h += `<div class="scorers">⚽ ${m.scorers}</div>`;
   if (withReview && m.review) h += `<div class="review">${m.review}</div>`;
-  if (m.score && m.points) h += chipsHtml(m.points);
+  if (withReview && m.preds_review) h += `<div class="preds-review">${m.preds_review}</div>`;
+  if (m.score && m.points) h += chipsHtml(m);
   return h + `</div>`;
 }
 function predsLine(m, participants) {
@@ -114,7 +119,8 @@ fetch("data.json?v=" + Date.now()).then(r => r.json()).then(d => {
     <table><tr><th>#</th><th>Участник</th><th class="r">Очки</th><th class="r">Точные</th></tr>` +
     d.standings.map((s, i) =>
       `<tr${i === 0 ? ' class="top"' : ""}><td>${i + 1}</td><td>${s.name}</td>
-       <td class="r">${s.points}</td><td class="r exact">${s.exact || "—"}</td></tr>`).join("") + `</table>`;
+       <td class="r">${s.points}</td><td class="r exact">${s.exact || "—"}</td></tr>`).join("") + `</table>` +
+    (d.table_comment ? `<div class="tbl-comment">${d.table_comment}</div>` : "");
 
   const futureDays = days.filter(day => byDay[day].some(m => !m.score));
   const nextDay = futureDays.length ? Math.min(...futureDays) : null;
