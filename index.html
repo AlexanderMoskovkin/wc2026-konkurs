@@ -120,7 +120,7 @@ function matchCard(m, withReview) {
   if (m.scorers) h += `<div class="scorers">⚽ ${m.scorers}</div>`;
   if (withReview && m.review) h += `<div class="review">${m.review}</div>`;
   if (withReview && m.preds_review) h += `<div class="preds-review">${m.preds_review}</div>`;
-  if (m.highlights && (m.highlights.url || typeof m.highlights === "string")) {
+  if (m.highlights && (typeof m.highlights === "string" || m.highlights.url)) {
     const hl = typeof m.highlights === "string" ? {url: m.highlights} : m.highlights;
     const data = encodeURIComponent(JSON.stringify(hl));
     h += `<div><button class="hl-btn" data-hl="${data}">▶ Обзор голов</button></div>`;
@@ -128,6 +128,10 @@ function matchCard(m, withReview) {
   if (m.score && m.points) h += chipsHtml(m);
   return h + `</div>`;
 }
+function predsLine(m, participants) {
+  return participants.map(p => `${p} ${m.preds[p] || "—?"}`).join(" · ");
+}
+
 function toEmbed(url) {
   try {
     const u = new URL(url);
@@ -137,4 +141,79 @@ function toEmbed(url) {
       const id = u.searchParams.get("v");
       if (id) return "https://www.youtube.com/embed/" + id;
       const m = u.pathname.match(/\/(?:embed|shorts)\/([\w-]+)/);
-      if (m) return "https
+      if (m) return "https://www.youtube.com/embed/" + m[1];
+    }
+    if (host.endsWith("vk.com") || host.endsWith("vkvideo.ru") || host.endsWith("vkontakte.ru")) {
+      if ((u.pathname + u.search).includes("video_ext.php")) return url;
+      const m = (u.pathname + u.search).match(/video(-?\d+)_(\d+)/);
+      if (m) return `https://vk.com/video_ext.php?oid=${m[1]}&id=${m[2]}&hd=2`;
+    }
+  } catch (e) {}
+  return null;
+}
+function openVid(hl) {
+  document.getElementById("vid-title").textContent = hl.title || "Обзор голов и ключевых моментов";
+  const body = document.getElementById("vid-body");
+  const embed = toEmbed(hl.url);
+  if (embed) {
+    body.innerHTML = `<iframe src="${embed}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+  } else {
+    body.innerHTML = `<div class="vid-link">Обзор открывается на сайте источника.
+      <a href="${hl.url}" target="_blank" rel="noopener">Смотреть обзор →</a>
+      ${hl.source ? `<span class="src">${hl.source}</span>` : ""}</div>`;
+  }
+  document.getElementById("vid-modal").hidden = false;
+}
+function closeVid() {
+  document.getElementById("vid-modal").hidden = true;
+  document.getElementById("vid-body").innerHTML = "";
+}
+document.addEventListener("click", e => {
+  const btn = e.target.closest(".hl-btn");
+  if (btn) { openVid(JSON.parse(decodeURIComponent(btn.dataset.hl))); return; }
+  if (e.target.classList.contains("vid-backdrop") || e.target.closest(".vid-close")) closeVid();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeVid(); });
+
+fetch("data.json?v=" + Date.now()).then(r => r.json()).then(d => {
+  document.getElementById("upd").textContent = "Обновлено " + d.generated_at_text;
+  const byDay = {};
+  d.matches.forEach(m => (byDay[m.day] = byDay[m.day] || []).push(m));
+  const days = Object.keys(byDay).map(Number).sort((a, b) => a - b);
+  const playedDays = days.filter(day => byDay[day].some(m => m.score));
+  const latestDay = playedDays.length ? Math.max(...playedDays) : null;
+
+  if (latestDay) {
+    const ms = byDay[latestDay].filter(m => m.score);
+    document.getElementById("latest").innerHTML =
+      `<h2>📰 День ${latestDay} <span class="day-sub">· ${dayDate(byDay[latestDay])} · результаты</span></h2>` +
+      ms.map(m => matchCard(m, true)).join("");
+  } else document.getElementById("latest").style.display = "none";
+
+  document.getElementById("table-sec").innerHTML = `<h2>🏆 Таблица</h2>
+    <table><tr><th>#</th><th>Участник</th><th class="r">Очки</th><th class="r">Точные</th></tr>` +
+    d.standings.map((s, i) =>
+      `<tr${i === 0 ? ' class="top"' : ""}><td>${i + 1}</td><td>${s.name}</td>
+       <td class="r">${s.points}</td><td class="r exact">${s.exact || "—"}</td></tr>`).join("") + `</table>` +
+    (d.table_comment ? `<div class="tbl-comment">${d.table_comment}</div>` : "");
+
+  const futureDays = days.filter(day => byDay[day].some(m => !m.score));
+  const nextDay = futureDays.length ? Math.min(...futureDays) : null;
+  if (nextDay) {
+    const ms = byDay[nextDay].filter(m => !m.score);
+    document.getElementById("next").innerHTML =
+      `<h2>⏰ День ${nextDay} <span class="day-sub">· ${dayDate(byDay[nextDay])} · прогнозы</span></h2>` +
+      ms.map(m => matchCard(m, false) +
+        `<div class="preds">${predsLine(m, d.participants)}</div>`).join("");
+  } else document.getElementById("next").style.display = "none";
+
+  const archDays = playedDays.filter(day => day !== latestDay).sort((a, b) => b - a);
+  if (archDays.length) {
+    document.getElementById("archive-sec").innerHTML = `<h2>📚 Предыдущие дни</h2>` +
+      archDays.map(day => `<details><summary>День ${day} <span class="day-sub">· ${dayDate(byDay[day])}</span></summary>` +
+        byDay[day].filter(m => m.score).map(m => matchCard(m, true)).join("") + `</details>`).join("");
+  } else document.getElementById("archive-sec").style.display = "none";
+});
+</script>
+</body>
+</html>
