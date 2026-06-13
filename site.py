@@ -149,6 +149,8 @@ def read_matches(xls_path):
                 m["scorers"] = rv["scorers"]
             if rv.get("preds_review"):
                 m["preds_review"] = rv["preds_review"]
+            if rv.get("highlights"):
+                m["highlights"] = rv["highlights"]
         matches.append(m)
     matches.sort(key=lambda m: (m["kickoff"], m["num"]))
     return matches
@@ -202,8 +204,4 @@ def main():
         json.dump(data, f, ensure_ascii=False, indent=1)
         f.write("\n")
     played = sum(1 for m in matches if m["score"])
-    print(f"OK: {len(matches)} матчей ({played} сыграно) -> {out}")
-
-
-if __name__ == "__main__":
-    main()
+    print(f"OK: {len(matches)} м
