@@ -45,6 +45,25 @@
   summary { padding: 12px 4px; font-size: 16px; font-weight: 600; cursor: pointer; }
   summary .day-sub { font-size: 13px; }
   footer { text-align: center; font-size: 13px; color: #8a8a84; padding: 8px 0 20px; }
+  .hl-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 9px; font-size: 14px;
+            font-weight: 600; padding: 6px 12px; border-radius: 10px; border: 1px solid #f0c9c4;
+            background: #fff3f1; color: #c0392b; cursor: pointer; }
+  .hl-btn:hover { background: #ffe7e3; }
+  .vid-modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center;
+               justify-content: center; padding: 16px; }
+  .vid-modal[hidden] { display: none; }
+  .vid-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.6); }
+  .vid-box { position: relative; z-index: 1; background: #fff; border-radius: 14px; width: 100%;
+             max-width: 760px; padding: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+  .vid-close { position: absolute; top: 6px; right: 10px; border: none; background: none;
+               font-size: 28px; line-height: 1; color: #999; cursor: pointer; }
+  .vid-close:hover { color: #555; }
+  .vid-title { font-size: 15px; font-weight: 600; margin: 2px 30px 10px 4px; }
+  .vid-body iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 10px; display: block; }
+  .vid-link { text-align: center; padding: 26px 14px; font-size: 16px; line-height: 1.6; }
+  .vid-link a { display: inline-block; margin-top: 10px; padding: 10px 18px; border-radius: 10px;
+                background: #c0392b; color: #fff; font-weight: 600; text-decoration: none; }
+  .vid-link .src { display: block; margin-top: 10px; font-size: 13px; color: #8a8a84; }
 </style>
 </head>
 <body>
@@ -58,6 +77,14 @@
   <section id="next"></section>
   <section id="archive-sec"></section>
   <footer>Семейный конкурс прогнозов · обновляется по утрам</footer>
+</div>
+<div id="vid-modal" class="vid-modal" hidden>
+  <div class="vid-backdrop"></div>
+  <div class="vid-box">
+    <button class="vid-close" aria-label="Закрыть">×</button>
+    <div class="vid-title" id="vid-title"></div>
+    <div class="vid-body" id="vid-body"></div>
+  </div>
 </div>
 <script>
 const FLAGS = {"Мексика":"mx","ЮАР":"za","Юж. Корея":"kr","Чехия":"cz","Канада":"ca","Босния":"ba",
@@ -93,52 +120,21 @@ function matchCard(m, withReview) {
   if (m.scorers) h += `<div class="scorers">⚽ ${m.scorers}</div>`;
   if (withReview && m.review) h += `<div class="review">${m.review}</div>`;
   if (withReview && m.preds_review) h += `<div class="preds-review">${m.preds_review}</div>`;
+  if (m.highlights && (m.highlights.url || typeof m.highlights === "string")) {
+    const hl = typeof m.highlights === "string" ? {url: m.highlights} : m.highlights;
+    const data = encodeURIComponent(JSON.stringify(hl));
+    h += `<div><button class="hl-btn" data-hl="${data}">▶ Обзор голов</button></div>`;
+  }
   if (m.score && m.points) h += chipsHtml(m);
   return h + `</div>`;
 }
-function predsLine(m, participants) {
-  return participants.map(p => `${p} ${m.preds[p] || "—?"}`).join(" · ");
-}
-
-fetch("data.json?v=" + Date.now()).then(r => r.json()).then(d => {
-  document.getElementById("upd").textContent = "Обновлено " + d.generated_at_text;
-  const byDay = {};
-  d.matches.forEach(m => (byDay[m.day] = byDay[m.day] || []).push(m));
-  const days = Object.keys(byDay).map(Number).sort((a, b) => a - b);
-  const playedDays = days.filter(day => byDay[day].some(m => m.score));
-  const latestDay = playedDays.length ? Math.max(...playedDays) : null;
-
-  if (latestDay) {
-    const ms = byDay[latestDay].filter(m => m.score);
-    document.getElementById("latest").innerHTML =
-      `<h2>📰 День ${latestDay} <span class="day-sub">· ${dayDate(byDay[latestDay])} · результаты</span></h2>` +
-      ms.map(m => matchCard(m, true)).join("");
-  } else document.getElementById("latest").style.display = "none";
-
-  document.getElementById("table-sec").innerHTML = `<h2>🏆 Таблица</h2>
-    <table><tr><th>#</th><th>Участник</th><th class="r">Очки</th><th class="r">Точные</th></tr>` +
-    d.standings.map((s, i) =>
-      `<tr${i === 0 ? ' class="top"' : ""}><td>${i + 1}</td><td>${s.name}</td>
-       <td class="r">${s.points}</td><td class="r exact">${s.exact || "—"}</td></tr>`).join("") + `</table>` +
-    (d.table_comment ? `<div class="tbl-comment">${d.table_comment}</div>` : "");
-
-  const futureDays = days.filter(day => byDay[day].some(m => !m.score));
-  const nextDay = futureDays.length ? Math.min(...futureDays) : null;
-  if (nextDay) {
-    const ms = byDay[nextDay].filter(m => !m.score);
-    document.getElementById("next").innerHTML =
-      `<h2>⏰ День ${nextDay} <span class="day-sub">· ${dayDate(byDay[nextDay])} · прогнозы</span></h2>` +
-      ms.map(m => matchCard(m, false) +
-        `<div class="preds">${predsLine(m, d.participants)}</div>`).join("");
-  } else document.getElementById("next").style.display = "none";
-
-  const archDays = playedDays.filter(day => day !== latestDay).sort((a, b) => b - a);
-  if (archDays.length) {
-    document.getElementById("archive-sec").innerHTML = `<h2>📚 Предыдущие дни</h2>` +
-      archDays.map(day => `<details><summary>День ${day} <span class="day-sub">· ${dayDate(byDay[day])}</span></summary>` +
-        byDay[day].filter(m => m.score).map(m => matchCard(m, true)).join("") + `</details>`).join("");
-  } else document.getElementById("archive-sec").style.display = "none";
-});
-</script>
-</body>
-</html>
+function toEmbed(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, "");
+    if (host === "youtu.be") return "https://www.youtube.com/embed/" + u.pathname.slice(1);
+    if (host.endsWith("youtube.com")) {
+      const id = u.searchParams.get("v");
+      if (id) return "https://www.youtube.com/embed/" + id;
+      const m = u.pathname.match(/\/(?:embed|shorts)\/([\w-]+)/);
+      if (m) return "https
