@@ -204,4 +204,8 @@ def main():
         json.dump(data, f, ensure_ascii=False, indent=1)
         f.write("\n")
     played = sum(1 for m in matches if m["score"])
-    print(f"OK: {len(matches)} м
+    print(f"OK: {len(matches)} matches, {played} played -> data.json")
+
+
+if __name__ == "__main__":
+    main()
