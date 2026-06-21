@@ -74,6 +74,7 @@
   </header>
   <section id="latest"></section>
   <section id="table-sec"></section>
+  <section id="tours-sec"></section>
   <section id="next"></section>
   <section id="archive-sec"></section>
   <footer>Семейный конкурс прогнозов · обновляется по утрам</footer>
@@ -196,6 +197,19 @@ fetch("data.json?v=" + Date.now()).then(r => r.json()).then(d => {
       `<tr${i === 0 ? ' class="top"' : ""}><td>${i + 1}</td><td>${s.name}</td>
        <td class="r">${s.points}</td><td class="r exact">${s.exact || "—"}</td></tr>`).join("") + `</table>` +
     (d.table_comment ? `<div class="tbl-comment">${d.table_comment}</div>` : "");
+
+  const toursEl = document.getElementById("tours-sec");
+  if (d.tours && d.tours.length) {
+    const lastTour = Math.max(...d.tours.map(t => t.num));
+    toursEl.innerHTML = `<h2>\ud83d\udccb Зачёт по турам <span class="day-sub">· только матчи тура</span></h2>` +
+      d.tours.slice().sort((a, b) => b.num - a.num).map(t =>
+        `<details${t.num === lastTour ? " open" : ""}><summary>${t.label} <span class="day-sub">· сыграно ${t.played} из ${t.total}</span></summary>` +
+        `<table><tr><th>#</th><th>Участник</th><th class="r">Очки</th><th class="r">Точные</th></tr>` +
+        t.standings.map((s, i) =>
+          `<tr${i === 0 ? ' class="top"' : ""}><td>${i + 1}</td><td>${s.name}</td>` +
+          `<td class="r">${s.points}</td><td class="r exact">${s.exact || "—"}</td></tr>`).join("") +
+        `</table></details>`).join("");
+  } else toursEl.style.display = "none";
 
   const futureDays = days.filter(day => byDay[day].some(m => !m.score));
   const nextDay = futureDays.length ? Math.min(...futureDays) : null;
