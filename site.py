@@ -17,6 +17,7 @@ import xlrd
 XLS_PATH = r"C:\Users\Alex\Claude\Scheduled\wc2026-family-contest-daily\WC2026_konkurs.xls"
 SHEET = "Прогнозы"
 PARTICIPANTS = ["Ваня", "Папа", "Алиса", "Бабушка", "Дед", "Оля", "Вова", "ИИ", "Серега"]
+TOURS = [(1, "1-й тур", 1, 24), (2, "2-й тур", 25, 48), (3, "3-й тур", 49, 72)]
 YEAR = 2026
 DAY1 = date(2026, 6, 11)  # 11.06 = день 1
 MSK = timezone(timedelta(hours=3))
@@ -156,9 +157,11 @@ def read_matches(xls_path):
     return matches
 
 
-def build_standings(matches):
+def build_standings(matches, lo=None, hi=None):
     totals = {n: {"points": 0, "exact": 0} for n in PARTICIPANTS}
     for m in matches:
+        if lo is not None and not (lo <= m["num"] <= hi):
+            continue
         for n, p in m.get("points", {}).items():
             if p is None:
                 continue
@@ -170,6 +173,25 @@ def build_standings(matches):
     for i, row in enumerate(rows):
         row["place"] = i + 1
     return rows
+
+
+def build_tours(matches):
+    """Отдельный зачёт по каждому групповому туру с сыгранными матчами."""
+    out = []
+    for num, label, lo, hi in TOURS:
+        played = sum(1 for m in matches if lo <= m["num"] <= hi and m.get("score"))
+        if not played:
+            continue
+        out.append({
+            "num": num,
+            "label": label,
+            "from": lo,
+            "to": hi,
+            "played": played,
+            "total": hi - lo + 1,
+            "standings": build_standings(matches, lo, hi),
+        })
+    return out
 
 
 def main():
@@ -185,6 +207,7 @@ def main():
         "generated_at_text": now.strftime("%d.%m в %H:%M МСК"),
         "participants": PARTICIPANTS,
         "standings": build_standings(matches),
+        "tours": build_tours(matches),
         "table_comment": load_reviews(xls).get("_table"),
         "matches": matches,
     }
