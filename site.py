@@ -16,6 +16,7 @@ import xlrd
 
 XLS_PATH = r"C:\Users\Alex\Claude\Scheduled\wc2026-family-contest-daily\WC2026_konkurs.xls"
 SHEET = "Прогнозы"
+ADV_SHEET = "Проход"  # коды прохода плей-офф (1/2), пишет sheet_to_xls.py
 PARTICIPANTS = ["Ваня", "Папа", "Алиса", "Бабушка", "Дед", "Оля", "Вова", "ИИ", "Серега"]
 TOURS = [(1, "1-й тур", 1, 24), (2, "2-й тур", 25, 48), (3, "3-й тур", 49, 72)]
 YEAR = 2026
@@ -82,11 +83,42 @@ def load_reviews(xls_path):
         return {}
 
 
+
+def is_knockout(stage):
+    return bool(stage) and not str(stage).strip().startswith("Группа")
+
+
+def read_advance(wb):
+    """{num: {"fact": "1"/"2"/"", <участник>: "1"/"2"/""}} из листа «Проход»."""
+    if ADV_SHEET not in wb.sheet_names():
+        return {}
+    sh = wb.sheet_by_name(ADV_SHEET)
+    if sh.nrows < 1:
+        return {}
+    head = [cell_str(sh, 0, c) for c in range(sh.ncols)]
+    out = {}
+    for r in range(1, sh.nrows):
+        try:
+            num = int(float(sh.cell_value(r, 0)))
+        except (ValueError, TypeError):
+            continue
+        rec = {}
+        for c, name in enumerate(head):
+            if name in ("№", "Матч"):
+                continue
+            v = cell_str(sh, r, c)
+            key = "fact" if name == "Факт" else name
+            rec[key] = v
+        out[num] = rec
+    return out
+
+
 def read_matches(xls_path):
     wb = xlrd.open_workbook(xls_path)
     if SHEET not in wb.sheet_names():
         raise SystemExit(f"ОШИБКА: в {xls_path} нет листа «{SHEET}»")
     sh = wb.sheet_by_name(SHEET)
+    advance = read_advance(wb)
     header = [cell_str(sh, 0, c) for c in range(sh.ncols)]
     expected = ["№", "Дата", "Время МСК", "Этап", "Матч", "Счёт"] + PARTICIPANTS
     if header[: len(expected)] != expected:
@@ -117,6 +149,9 @@ def read_matches(xls_path):
         actual = parse_score(score_raw)
         if score_raw and actual is None:
             print(f"ПРЕДУПРЕЖДЕНИЕ: матч №{num}: непонятный счёт «{score_raw}», считаю несыгранным", file=sys.stderr)
+        ko = is_knockout(cell_str(sh, r, 3))
+        adv = advance.get(int(float(num)), {})
+        adv_fact = adv.get("fact", "")
         preds, points = {}, {}
         for i, name in enumerate(PARTICIPANTS):
             raw = cell_str(sh, r, 6 + i)
@@ -125,7 +160,11 @@ def read_matches(xls_path):
                 print(f"ПРЕДУПРЕЖДЕНИЕ: матч №{num}, {name}: непонятный прогноз «{raw}», игнорирую", file=sys.stderr)
             preds[name] = f"{p[0]}:{p[1]}" if p else None
             if actual:
-                points[name] = score_points(p, actual)
+                base = score_points(p, actual)
+                if base is not None and ko and adv_fact:
+                    if adv.get(name) and adv[name] == adv_fact:
+                        base += 1  # +1 за угаданный проход (плей-офф)
+                points[name] = base
         m = {
             "num": int(float(num)),
             "date": d,
@@ -137,6 +176,7 @@ def read_matches(xls_path):
             "team2": teams[1],
             "score": f"{actual[0]}:{actual[1]}" if actual else None,
             "preds": preds,
+            "knockout": ko,
         }
         if actual:
             m["points"] = points
@@ -157,10 +197,12 @@ def read_matches(xls_path):
     return matches
 
 
-def build_standings(matches, lo=None, hi=None):
+def build_standings(matches, lo=None, hi=None, predicate=None):
     totals = {n: {"points": 0, "exact": 0} for n in PARTICIPANTS}
     for m in matches:
         if lo is not None and not (lo <= m["num"] <= hi):
+            continue
+        if predicate is not None and not predicate(m):
             continue
         for n, p in m.get("points", {}).items():
             if p is None:
@@ -207,6 +249,7 @@ def main():
         "generated_at_text": now.strftime("%d.%m в %H:%M МСК"),
         "participants": PARTICIPANTS,
         "standings": build_standings(matches),
+        "playoff_standings": build_standings(matches, predicate=lambda m: m.get("knockout")),
         "tours": build_tours(matches),
         "table_comment": load_reviews(xls).get("_table"),
         "matches": matches,
