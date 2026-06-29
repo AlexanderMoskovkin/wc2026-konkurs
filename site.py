@@ -180,6 +180,10 @@ def read_matches(xls_path):
         }
         if actual:
             m["points"] = points
+        if ko:
+            adv_codes = {n: adv[n] for n in PARTICIPANTS if adv.get(n)}
+            if adv_codes:
+                m["advance"] = adv_codes
         rv = reviews.get(str(m["num"])) or reviews.get(d, {}).get(str(m["num"]))
         if isinstance(rv, str):
             m["review"] = rv
