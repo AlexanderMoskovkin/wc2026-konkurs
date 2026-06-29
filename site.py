@@ -208,7 +208,7 @@ def build_standings(matches, lo=None, hi=None, predicate=None):
             if p is None:
                 continue
             totals[n]["points"] += p
-            if p == 5:
+            if m.get("preds", {}).get(n) and m["preds"][n] == m.get("score"):
                 totals[n]["exact"] += 1
     rows = [{"name": n, **totals[n]} for n in PARTICIPANTS]
     rows.sort(key=lambda x: (-x["points"], -x["exact"], x["name"]))
