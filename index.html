@@ -113,7 +113,7 @@ function chipsHtml(m) {
   const entries = Object.entries(m.points).filter(([, v]) => v !== null && v !== undefined && v !== "—");
   entries.sort((a, b) => b[1] - a[1]);
   return `<div class="chips">` + entries.map(([n, p]) =>
-    `<span class="${chipClass(p)}">${n} ${p > 0 ? "+" + p : "0"}<small>${m.preds[n] || "—"}</small></span>`).join("") + `</div>`;
+    `<span class="${chipClass(p)}">${n} ${p > 0 ? "+" + p : "0"}<small>${fmtPred(m, n) || "—"}</small></span>`).join("") + `</div>`;
 }
 function matchCard(m, withReview) {
   let h = `<div class="match"><div class="meta">${m.time} МСК · ${m.stage}</div>
@@ -130,8 +130,18 @@ function matchCard(m, withReview) {
   if (m.score && m.points) h += chipsHtml(m);
   return h + `</div>`;
 }
+function fmtPred(m, name) {
+  const p = m.preds[name];
+  if (!p) return null;
+  const adv = m.advance && m.advance[name];
+  const mm = /^(\d+):(\d+)$/.exec(p);
+  if (m.knockout && adv && mm && mm[1] === mm[2]) {
+    return adv === "1" ? `<b>${mm[1]}</b>:${mm[2]}` : `${mm[1]}:<b>${mm[2]}</b>`;
+  }
+  return p;
+}
 function predsLine(m, participants) {
-  return participants.map(p => `${p} ${m.preds[p] || "—?"}`).join(" · ");
+  return participants.map(p => `${p} ${fmtPred(m, p) || "\u2014?"}`).join(" \u00b7 ");
 }
 
 function toEmbed(url) {
