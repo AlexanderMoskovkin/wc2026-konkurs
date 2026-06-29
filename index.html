@@ -74,6 +74,7 @@
   </header>
   <section id="latest"></section>
   <section id="table-sec"></section>
+  <section id="playoff-sec"></section>
   <section id="tours-sec"></section>
   <section id="next"></section>
   <section id="archive-sec"></section>
@@ -197,6 +198,17 @@ fetch("data.json?v=" + Date.now()).then(r => r.json()).then(d => {
       `<tr${i === 0 ? ' class="top"' : ""}><td>${i + 1}</td><td>${s.name}</td>
        <td class="r">${s.points}</td><td class="r exact">${s.exact || "—"}</td></tr>`).join("") + `</table>` +
     (d.table_comment ? `<div class="tbl-comment">${d.table_comment}</div>` : "");
+
+  const poEl = document.getElementById("playoff-sec");
+  const poPlayed = d.matches.some(m => m.knockout && m.score);
+  if (d.playoff_standings && d.playoff_standings.length && poPlayed) {
+    poEl.innerHTML = `<h2>\ud83c\udfc6 Зачёт плей-офф <span class="day-sub">· только матчи плей-офф</span></h2>` +
+      `<table><tr><th>#</th><th>Участник</th><th class="r">Очки</th><th class="r">Точные</th></tr>` +
+      d.playoff_standings.filter(s => s.points > 0 || true).map((s, i) =>
+        `<tr${i === 0 ? ' class="top"' : ""}><td>${i + 1}</td><td>${s.name}</td>` +
+        `<td class="r">${s.points}</td><td class="r exact">${s.exact || "\u2014"}</td></tr>`).join("") +
+      `</table>`;
+  } else poEl.style.display = "none";
 
   const toursEl = document.getElementById("tours-sec");
   if (d.tours && d.tours.length) {
