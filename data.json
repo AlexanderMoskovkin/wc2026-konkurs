@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-06-29T08:58:43+03:00",
- "generated_at_text": "29.06 в 08:58 МСК",
+ "generated_at": "2026-06-29T09:03:54+03:00",
+ "generated_at_text": "29.06 в 09:03 МСК",
  "participants": [
   "Ваня",
   "Папа",
@@ -16,7 +16,7 @@
   {
    "name": "Вова",
    "points": 163,
-   "exact": 12,
+   "exact": 13,
    "place": 1
   },
   {
@@ -28,7 +28,7 @@
   {
    "name": "ИИ",
    "points": 150,
-   "exact": 6,
+   "exact": 7,
    "place": 3
   },
   {
@@ -72,13 +72,13 @@
   {
    "name": "Вова",
    "points": 6,
-   "exact": 0,
+   "exact": 1,
    "place": 1
   },
   {
    "name": "ИИ",
    "points": 6,
-   "exact": 0,
+   "exact": 1,
    "place": 2
   },
   {
