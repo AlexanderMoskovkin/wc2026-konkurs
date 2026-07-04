@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-07-04T17:25:32+03:00",
- "generated_at_text": "04.07 в 17:25 МСК",
+ "generated_at": "2026-07-04T17:27:23+03:00",
+ "generated_at_text": "04.07 в 17:27 МСК",
  "participants": [
   "Ваня",
   "Папа",
@@ -121,6 +121,62 @@
    "name": "Алиса",
    "points": 29,
    "exact": 0,
+   "place": 9
+  }
+ ],
+ "group_standings": [
+  {
+   "name": "Вова",
+   "points": 157,
+   "exact": 12,
+   "place": 1
+  },
+  {
+   "name": "Папа",
+   "points": 146,
+   "exact": 8,
+   "place": 2
+  },
+  {
+   "name": "ИИ",
+   "points": 144,
+   "exact": 6,
+   "place": 3
+  },
+  {
+   "name": "Ваня",
+   "points": 137,
+   "exact": 8,
+   "place": 4
+  },
+  {
+   "name": "Серега",
+   "points": 135,
+   "exact": 8,
+   "place": 5
+  },
+  {
+   "name": "Дед",
+   "points": 123,
+   "exact": 5,
+   "place": 6
+  },
+  {
+   "name": "Оля",
+   "points": 122,
+   "exact": 4,
+   "place": 7
+  },
+  {
+   "name": "Бабушка",
+   "points": 115,
+   "exact": 3,
+   "place": 8
+  },
+  {
+   "name": "Алиса",
+   "points": 80,
+   "exact": 2,
    "place": 9
   }
  ],
