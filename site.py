@@ -254,6 +254,7 @@ def main():
         "participants": PARTICIPANTS,
         "standings": build_standings(matches),
         "playoff_standings": build_standings(matches, predicate=lambda m: m.get("knockout")),
+        "group_standings": build_standings(matches, predicate=lambda m: not m.get("knockout")),
         "tours": build_tours(matches),
         "table_comment": load_reviews(xls).get("_table"),
         "matches": matches,
